@@ -21,3 +21,5 @@ Le fichier contient :
 
 Et pour finir créer le fichier db.js qui va servir à configurer 
 l'accès à la base de donnée.
+
+Pour démarrer l'API faire node server.js dans un terminal
