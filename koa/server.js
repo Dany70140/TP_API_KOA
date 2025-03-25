@@ -11,8 +11,7 @@ app.use(cors())
 // Route GET /api/films
 router.get('/api/films', async (ctx) => {
     try {
-        const [films] = await pool.query(`
-      SELECT f.id,f.titre, f.realisateur, f.affiche, g.nom AS genre_nom FROM films f LEFT JOIN genres g ON f.genre_id = g.id`)
+        const [films] = await pool.query(`SELECT f.id,f.titre, f.realisateur, f.affiche, g.nom AS genre_nom FROM films f LEFT JOIN genres g ON f.genre_id = g.id`)
 
         // Formatage pour index.php
         ctx.body = {
@@ -52,6 +51,30 @@ router.get('/api/films/:id', async (ctx) => {
         }
 
     } catch (err) {
+        ctx.status = 500
+        ctx.body = { success: false, message: 'Erreur serveur' }
+    }
+})
+
+//
+// API séances
+//
+
+router.get('/api/films/:id/seances', async (ctx) => {
+    try {
+        const [seances] = await pool.query(`
+            SELECT s.id AS seance_id, s.date AS seance_date, s.heure AS seance_heure, s.places_disponibles FROM seances s WHERE s.film_id = ? ORDER BY s.date, s.heure`, [ctx.params.id])
+
+        ctx.body = {
+            success: true,
+            data: seances.map(seance => ({
+                ...seance,
+                seance_date: new Date(seance.seance_date).toISOString()
+            }))
+        }
+
+    } catch (err) {
+        console.error(err)
         ctx.status = 500
         ctx.body = { success: false, message: 'Erreur serveur' }
     }

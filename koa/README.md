@@ -6,6 +6,9 @@ premièrement installer koa.js
 - npm init -y
 - npm install koa @koa
 - npm install mysql2
+- (Si il y a une erreur lors du lancement du serveur faire :
+  npm install long mysql2 --save)
+
 
 Ensuite créer le fichier server.js qui va servir à :
 
