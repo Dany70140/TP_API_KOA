@@ -80,6 +80,48 @@ router.get('/api/films/:id/seances', async (ctx) => {
     }
 })
 
+
+router.post('/api/films/create', async (ctx) => {
+    try {
+        const { titre, realisateur, duree, date_sortie, affiche, genre_id, description } = ctx.request.body;
+
+        // Validation des données requises
+        if (!titre || !realisateur || !genre_id) {
+            ctx.status = 400;
+            ctx.body = {
+                success: false,
+                message: 'Titre, réalisateur et genre_id sont obligatoires'
+            };
+            return
+        }
+
+        // Insertion dans la base de données
+        const [result] = await pool.query(
+            `INSERT INTO films 
+             (titre, realisateur, duree, date_sortie, affiche, genre_id, description) 
+             VALUES (?, ?, ?, ?, ?, ?, ?)`,
+            [titre, realisateur, duree, date_sortie, affiche, genre_id, description]
+        )
+
+        ctx.status = 201;
+        ctx.body = {
+            success: true,
+            data: newFilm[0]
+        }
+    // Affichage des erreurs possible
+    } catch (err) {
+        console.error('Erreur lors de la création du film:', err);
+        ctx.status = 500;
+        ctx.body = {
+            success: false,
+            message: 'Erreur lors de la création du film',
+            error: process.env.NODE_ENV === 'development' ? err.message : undefined
+        }
+    }
+})
+
+
+
 app.use(router.routes())
 app.listen(3000, () => {
     // Envoyer dans le terminal que le serveur à bien démarrer
