@@ -80,18 +80,20 @@ router.get('/api/films/:id/seances', async (ctx) => {
     }
 })
 
-
+//
+// API Création de films
+//
 router.post('/api/films/create', async (ctx) => {
     try {
-        const { titre, realisateur, duree, date_sortie, affiche, genre_id, description } = ctx.request.body;
+        const { titre, realisateur, duree, date_sortie, affiche, genre_id, description } = ctx.request.body
 
         // Validation des données requises
         if (!titre || !realisateur || !genre_id) {
-            ctx.status = 400;
+            ctx.status = 400
             ctx.body = {
                 success: false,
                 message: 'Titre, réalisateur et genre_id sont obligatoires'
-            };
+            }
             return
         }
 
@@ -103,15 +105,15 @@ router.post('/api/films/create', async (ctx) => {
             [titre, realisateur, duree, date_sortie, affiche, genre_id, description]
         )
 
-        ctx.status = 201;
+        ctx.status = 201
         ctx.body = {
             success: true,
             data: newFilm[0]
         }
     // Affichage des erreurs possible
     } catch (err) {
-        console.error('Erreur lors de la création du film:', err);
-        ctx.status = 500;
+        console.error('Erreur lors de la création du film:', err)
+        ctx.status = 500
         ctx.body = {
             success: false,
             message: 'Erreur lors de la création du film',
@@ -119,7 +121,55 @@ router.post('/api/films/create', async (ctx) => {
         }
     }
 })
+//
+// API Suppression de films
+//
+router.delete('/api/films/:id/delete', async (ctx) => {
+    try {
+        const filmId = parseInt(ctx.params.id)
 
+        // Validation de l'ID
+        if (isNaN(filmId)) {
+            ctx.status = 400
+            ctx.body = {
+                success: false,
+                message: 'ID doit être un nombre valide'
+            }
+            return
+        }
+
+        // Supppression des séances associées
+        await pool.query('DELETE FROM seances WHERE film_id = ?', [filmId])
+
+        // Ensuite supprimer le film
+        const [result] = await pool.query('DELETE FROM films WHERE id = ?', [filmId])
+
+        // Vérifier si un film a été supprimé
+        if (result.affectedRows === 0) {
+            ctx.status = 404
+            ctx.body = {
+                success: false,
+                message: 'Film non trouvé'
+            }
+            return
+        }
+
+        ctx.status = 200
+        ctx.body = {
+            success: true,
+            message: 'Film supprimé avec succès'
+        }
+
+    } catch (err) {
+        console.error('Erreur lors de la suppression du film:', err)
+        ctx.status = 500
+        ctx.body = {
+            success: false,
+            message: 'Erreur lors de la suppression du film',
+            error: process.env.NODE_ENV === 'development' ? err.message : undefined
+        }
+    }
+})
 
 
 app.use(router.routes())
